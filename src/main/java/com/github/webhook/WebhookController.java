@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/webhook")
@@ -21,7 +23,30 @@ public class WebhookController {
             return new ResponseEntity<>("Invalid signature", HttpStatus.FORBIDDEN);
         }
 
-        System.out.println("Received payload: " + payload);
+        // Обработка полученного payload
+        try {
+            // Преобразование payload в JsonNode
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(payload);
+
+            // Пример обработки данных
+            String ref = jsonNode.path("ref").asText();  // Ссылка на ветку
+            JsonNode commitsNode = jsonNode.path("commits");
+
+            // Логирование информации о коммитах
+            for (JsonNode commit : commitsNode) {
+                String commitId = commit.path("id").asText();
+                String message = commit.path("message").asText();
+                System.out.println("Commit ID: " + commitId + ", Message: " + message);
+            }
+
+            // Логирование других данных из webhook
+            System.out.println("Received push on ref: " + ref);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return new ResponseEntity<>("Webhook received", HttpStatus.OK);
     }
 
