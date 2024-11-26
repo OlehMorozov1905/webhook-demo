@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Конфигурация консольного аппендера -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Конфигурация файла логов с ротацией -->
+    <appender name="File" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>C:/webhook-demo/application.log</file> <!-- Путь к логам -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+
+        <!-- Настройки ротации файлов -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/application-%d{yyyy-MM-dd}.%i.log</fileNamePattern> <!-- Ротация по дате -->
+            <maxHistory>30</maxHistory> <!-- Хранить логи за 30 дней -->
+            <totalSizeCap>10GB</totalSizeCap> <!-- Максимальный размер логов -->
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>10MB</maxFileSize> <!-- Максимальный размер одного файла лога -->
+        </triggeringPolicy>
+    </appender>
+
+    <!-- Добавление аппендеров для разных уровней логирования -->
+    <root level="INFO">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+    </root>
+
+    <!-- Логирование для конкретных пакетов -->
+    <logger name="org.springframework.web" level="DEBUG">
+        <appender-ref ref="File"/>
+    </logger>
+
+    <logger name="com.github.webhook" level="DEBUG">
+        <appender-ref ref="File"/>
+    </logger>
+
+
+</configuration>

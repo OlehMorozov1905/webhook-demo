@@ -8,5 +8,6 @@ public class WebhookApplication {
     public static void main(String[] args) {
 
         SpringApplication.run(WebhookApplication.class, args);
+
     }
 }
