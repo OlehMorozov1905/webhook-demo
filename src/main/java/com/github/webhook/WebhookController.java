@@ -1,5 +1,7 @@
 package com.github.webhook;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Hex;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -7,8 +9,6 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/webhook")
@@ -23,28 +23,51 @@ public class WebhookController {
             return new ResponseEntity<>("Invalid signature", HttpStatus.FORBIDDEN);
         }
 
-        // Обработка полученного payload
         try {
             // Преобразование payload в JsonNode
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(payload);
 
-            // Пример обработки данных
-            String ref = jsonNode.path("ref").asText();  // Ссылка на ветку
-            JsonNode commitsNode = jsonNode.path("commits");
+            // Поле repository (информация о репозитории)
+            JsonNode repositoryNode = jsonNode.path("repository");
+            String repositoryName = repositoryNode.path("name").asText();
+            String repositoryUrl = repositoryNode.path("url").asText();
+            System.out.println("Repository: " + repositoryName);
+            System.out.println("Repository URL: " + repositoryUrl);
 
-            // Логирование информации о коммитах
+            // Поле ref (ссылка на ветку)
+            String ref = jsonNode.path("ref").asText();
+            System.out.println("Ref: " + ref);
+
+            // Поле commits (информация о коммитах)
+            JsonNode commitsNode = jsonNode.path("commits");
             for (JsonNode commit : commitsNode) {
                 String commitId = commit.path("id").asText();
                 String message = commit.path("message").asText();
                 System.out.println("Commit ID: " + commitId + ", Message: " + message);
             }
 
-            // Логирование других данных из webhook
-            System.out.println("Received push on ref: " + ref);
+            // Поля added, modified, removed (измененные файлы)
+            JsonNode headCommitNode = jsonNode.path("head_commit");
+            JsonNode addedFiles = headCommitNode.path("added");
+            JsonNode modifiedFiles = headCommitNode.path("modified");
+            JsonNode removedFiles = headCommitNode.path("removed");
+
+            // Логирование добавленных файлов
+            System.out.println("Added files: ");
+            addedFiles.forEach(file -> System.out.println(file.asText()));
+
+            // Логирование измененных файлов
+            System.out.println("Modified files: ");
+            modifiedFiles.forEach(file -> System.out.println(file.asText()));
+
+            // Логирование удаленных файлов
+            System.out.println("Removed files: ");
+            removedFiles.forEach(file -> System.out.println(file.asText()));
 
         } catch (Exception e) {
             e.printStackTrace();
+            return new ResponseEntity<>("Error processing webhook", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         return new ResponseEntity<>("Webhook received", HttpStatus.OK);
