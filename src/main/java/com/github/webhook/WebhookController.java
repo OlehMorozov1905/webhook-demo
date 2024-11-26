@@ -3,6 +3,9 @@ package com.github.webhook;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -14,12 +17,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/webhook")
 public class WebhookController {
 
-    private static final String SECRET_KEY = "your_secret_key"; // Введите ваш секретный ключ, указанный в настройках GitHub
+    private static final String SECRET_KEY = "your_secret_key"; // Ваш секретный ключ
+    private static final Logger logger = LoggerFactory.getLogger(WebhookController.class); // Логгер
 
     @PostMapping
     public ResponseEntity<String> handleWebhook(@RequestBody String payload,
                                                 @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature) {
+        // Проверка подписи
         if (signature == null || !isValidSignature(payload, signature)) {
+            logger.error("Invalid or missing signature");
             return new ResponseEntity<>("Invalid signature", HttpStatus.FORBIDDEN);
         }
 
@@ -32,19 +38,19 @@ public class WebhookController {
             JsonNode repositoryNode = jsonNode.path("repository");
             String repositoryName = repositoryNode.path("name").asText();
             String repositoryUrl = repositoryNode.path("url").asText();
-            System.out.println("Repository: " + repositoryName);
-            System.out.println("Repository URL: " + repositoryUrl);
+            logger.info("Repository: " + repositoryName);
+            logger.info("Repository URL: " + repositoryUrl);
 
             // Поле ref (ссылка на ветку)
             String ref = jsonNode.path("ref").asText();
-            System.out.println("Ref: " + ref);
+            logger.info("Ref: " + ref);
 
             // Поле commits (информация о коммитах)
             JsonNode commitsNode = jsonNode.path("commits");
             for (JsonNode commit : commitsNode) {
                 String commitId = commit.path("id").asText();
                 String message = commit.path("message").asText();
-                System.out.println("Commit ID: " + commitId + ", Message: " + message);
+                logger.info("Commit ID: " + commitId + ", Message: " + message);
             }
 
             // Поля added, modified, removed (измененные файлы)
@@ -54,19 +60,19 @@ public class WebhookController {
             JsonNode removedFiles = headCommitNode.path("removed");
 
             // Логирование добавленных файлов
-            System.out.println("Added files: ");
-            addedFiles.forEach(file -> System.out.println(file.asText()));
+            logger.info("Added files: ");
+            addedFiles.forEach(file -> logger.info(file.asText()));
 
             // Логирование измененных файлов
-            System.out.println("Modified files: ");
-            modifiedFiles.forEach(file -> System.out.println(file.asText()));
+            logger.info("Modified files: ");
+            modifiedFiles.forEach(file -> logger.info(file.asText()));
 
             // Логирование удаленных файлов
-            System.out.println("Removed files: ");
-            removedFiles.forEach(file -> System.out.println(file.asText()));
+            logger.info("Removed files: ");
+            removedFiles.forEach(file -> logger.info(file.asText()));
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error processing webhook", e);
             return new ResponseEntity<>("Error processing webhook", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -85,7 +91,7 @@ public class WebhookController {
             // Сравнение с подписью из заголовка
             return signature.equals(calculatedSignature);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error validating signature", e);
             return false;
         }
     }
