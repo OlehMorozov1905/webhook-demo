@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.github.webhook'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'commons-codec:commons-codec:1.15'
+    implementation 'org.springframework.boot:spring-boot-starter-web:3.1.6'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
