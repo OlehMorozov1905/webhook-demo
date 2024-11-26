@@ -1,17 +1,29 @@
 <configuration>
-    <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+    <!-- Appender для вывода логов в файл -->
+    <appender name="File" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>C:/webhook-demo/application.log</file> <!-- Путь к файлу логов -->
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>C:/webhook-demo/application-%d{yyyy-MM-dd}.log</fileNamePattern> <!-- Имя файла лога с датой -->
+            <fileNamePattern>C:/webhook-demo/application-%d{yyyy-MM-dd}.log</fileNamePattern> <!-- Шаблон имени файла -->
             <maxHistory>30</maxHistory> <!-- Максимальное количество дней хранения логов -->
         </rollingPolicy>
     </appender>
 
+    <!-- Appender для вывода логов в консоль -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Уровень логирования и аппендеры -->
     <root level="INFO">
-        <appender-ref ref="RollingFile"/>
+        <appender-ref ref="File"/>
+        <appender-ref ref="Console"/>
     </root>
+
 </configuration>
